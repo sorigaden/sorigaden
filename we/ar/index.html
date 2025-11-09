@@ -3,24 +3,64 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AR.js 카메라 테스트 (마커/영상 없음)</title>
+  <title>소리가든 AR 카메라</title>
+
+  <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.4.1/aframe.min.js"></script>
-  <script src="https://ar-js-org.github.io/AR.js/aframe/build/aframe-ar-nft.js"></script>
+  <!-- AR.js (marker 전용, 안정 버전) -->
+  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+
   <style>
-    html,body{margin:0;height:100%;overflow:hidden;background:#000}
-    .ui{position:fixed;left:0;right:0;bottom:0;padding:10px 14px;display:flex;justify-content:center;
-        font-family:system-ui,-apple-system,'Apple SD Gothic Neo',Roboto,'Noto Sans KR',sans-serif;color:#fff}
-    .pill{background:rgba(0,0,0,.45);border-radius:999px;padding:8px 14px;font-size:14px}
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      font-family: -apple-system, system-ui, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    }
+    #wrapper {
+      position: fixed;
+      inset: 0;
+    }
+    .ui {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: center;
+      pointer-events: none;
+    }
+    .pill {
+      background: rgba(0,0,0,.55);
+      border-radius: 999px;
+      padding: 7px 14px;
+      font-size: 13px;
+      color: #fff;
+    }
   </style>
 </head>
 <body>
-  <a-scene vr-mode-ui="enabled:false"
-           renderer="precision: mediump; antialias:false"
-           embedded
-           arjs="trackingMethod: best; sourceType: webcam; sourceWidth:640; sourceHeight:480; displayWidth:640; displayHeight:480; debugUIEnabled:false">
-    <!-- 콘텐츠 없음: 카메라 배경만 보여야 함 -->
+<div id="wrapper">
+  <!-- 카메라만 켜지는 기본 테스트 -->
+  <a-scene
+    vr-mode-ui="enabled: false"
+    embedded
+    renderer="alpha: true; antialias: true; precision: mediump"
+    arjs="sourceType: webcam; sourceWidth: 640; sourceHeight: 480;
+          displayWidth: 640; displayHeight: 480;
+          trackingMethod: best;
+          debugUIEnabled: false;">
+    <!-- 나중에 여기 안에 marker + video 넣을 거야 -->
     <a-entity camera></a-entity>
   </a-scene>
-  <div class="ui"><div class="pill">카메라 배경만 나와야 정상입니다</div></div>
+</div>
+
+<div class="ui">
+  <div class="pill">카메라 화면이 계속 보이면 정상이에요</div>
+</div>
 </body>
 </html>
