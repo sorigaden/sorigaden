@@ -3,16 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>소리가든 AR (Hiro 테스트)</title>
+  <title>소리가든 AR</title>
 
-  <!-- 딱 공식 조합 -->
+  <!-- A-Frame + AR.js NFT (모바일에서 Hiro 테스트되던 버전과 호환) -->
   <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.3.2/aframe/build/aframe-ar.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.3.2/aframe/build/aframe-ar-nft.js"></script>
 
   <style>
     body {
       margin: 0;
       overflow: hidden;
+      background: #000;
     }
   </style>
 </head>
@@ -22,20 +23,94 @@
   embedded
   vr-mode-ui="enabled: false"
   renderer="alpha: true; antialias: true; precision: mediump"
-  arjs="sourceType: webcam; debugUIEnabled: true;">
+  arjs="sourceType: webcam; trackingMethod: best; debugUIEnabled: false;">
 
-  <!-- 기본 Hiro 마커 위에 빨간 박스 -->
-  <a-marker preset="hiro">
-    <a-box position="0 0.5 0"
-           depth="0.5"
-           height="0.5"
-           width="0.5"
-           color="#FF5252">
-    </a-box>
-  </a-marker>
+  <!-- 🔹 Firebase 영상들 -->
+  <a-assets>
+    <!-- 1번 마커용 -->
+    <video
+      id="video1"
+      src="https://firebasestorage.googleapis.com/v0/b/sorigaden.firebasestorage.app/o/we%2Far%2F1.mp4?alt=media&amp;token=0c289a1d-0346-4c63-a08f-996d94f86dc2"
+      crossorigin="anonymous"
+      preload="auto"
+      playsinline
+      webkit-playsinline
+      muted
+      loop>
+    </video>
+
+    <!-- 2번 마커용 -->
+    <video
+      id="video2"
+      src="https://firebasestorage.googleapis.com/v0/b/sorigaden.firebasestorage.app/o/we%2Far%2F2.mp4?alt=media&amp;token=866679ed-8850-44a8-b82e-f73e3e60b128"
+      crossorigin="anonymous"
+      preload="auto"
+      playsinline
+      webkit-playsinline
+      muted
+      loop>
+    </video>
+  </a-assets>
+
+  <!-- 🔹 1번 NFT 마커 (we/ar/markers/1.fset, 1.fset3, 1.iset 있어야 함) -->
+  <a-nft
+    type="nft"
+    url="markers/1"
+    smooth="true"
+    smoothCount="10"
+    smoothTolerance="0.01"
+    smoothThreshold="5">
+    <a-video
+      src="#video1"
+      width="1"
+      height="0.5625"
+      position="0 0 0"
+      rotation="-90 0 0"
+      play-video-on-marker="target: #video1">
+    </a-video>
+  </a-nft>
+
+  <!-- 🔹 2번 NFT 마커 -->
+  <a-nft
+    type="nft"
+    url="markers/2"
+    smooth="true"
+    smoothCount="10"
+    smoothTolerance="0.01"
+    smoothThreshold="5">
+    <a-video
+      src="#video2"
+      width="1"
+      height="0.5625"
+      position="0 0 0"
+      rotation="-90 0 0"
+      play-video-on-marker="target: #video2">
+    </a-video>
+  </a-nft>
 
   <a-entity camera></a-entity>
 </a-scene>
 
+<script>
+  // 마커 보이면 target 영상 재생, 사라지면 일시정지
+  AFRAME.registerComponent('play-video-on-marker', {
+    schema: { target: { type: 'selector' } },
+    init: function () {
+      const markerEl = this.el.parentEl;
+      const videoEl = this.data.target;
+      if (!markerEl || !videoEl) return;
+
+      markerEl.addEventListener('markerFound', () => {
+        videoEl.play().catch(() => {});
+      });
+
+      markerEl.addEventListener('markerLost', () => {
+        if (!videoEl.paused) videoEl.pause();
+      });
+    }
+  });
+</script>
+
 </body>
 </html>
+
