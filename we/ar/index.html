@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>소리가든 AR</title>
 
-  <!-- A-Frame + AR.js NFT (모바일에서 Hiro 테스트되던 버전과 호환) -->
+  <!-- A-Frame + AR.js NFT -->
   <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.3.2/aframe/build/aframe-ar-nft.js"></script>
 
@@ -14,6 +14,27 @@
       margin: 0;
       overflow: hidden;
       background: #000;
+      font-family: -apple-system, system-ui, "Noto Sans KR", sans-serif;
+    }
+    #hint-wrap {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      justify-content: center;
+      padding: 8px 12px;
+      pointer-events: none;
+      z-index: 10;
+      color: #fff;
+      text-shadow: 0 1px 2px #000;
+      font-size: 12px;
+    }
+    #hint {
+      background: rgba(0,0,0,0.65);
+      padding: 6px 14px;
+      border-radius: 999px;
+      white-space: nowrap;
     }
   </style>
 </head>
@@ -27,7 +48,6 @@
 
   <!-- 🔹 Firebase 영상들 -->
   <a-assets>
-    <!-- 1번 마커용 -->
     <video
       id="video1"
       src="https://firebasestorage.googleapis.com/v0/b/sorigaden.firebasestorage.app/o/we%2Far%2F1.mp4?alt=media&amp;token=0c289a1d-0346-4c63-a08f-996d94f86dc2"
@@ -39,7 +59,6 @@
       loop>
     </video>
 
-    <!-- 2번 마커용 -->
     <video
       id="video2"
       src="https://firebasestorage.googleapis.com/v0/b/sorigaden.firebasestorage.app/o/we%2Far%2F2.mp4?alt=media&amp;token=866679ed-8850-44a8-b82e-f73e3e60b128"
@@ -52,60 +71,101 @@
     </video>
   </a-assets>
 
-  <!-- 🔹 1번 NFT 마커 (we/ar/markers/1.fset, 1.fset3, 1.iset 있어야 함) -->
+  <!-- 🔹 1번 NFT 마커 -->
   <a-nft
+    id="marker1"
     type="nft"
     url="markers/1"
     smooth="true"
     smoothCount="10"
     smoothTolerance="0.01"
     smoothThreshold="5">
+    
+    <!-- 디버그용 박스 (마커 인식되면 무조건 보여야 함) -->
+    <a-box color="#FFEB3B"
+           position="0 0 0"
+           rotation="-90 0 0"
+           width="1"
+           height="1"
+           depth="0.01">
+    </a-box>
+
+    <!-- 영상 평면 -->
     <a-video
+      id="plane1"
       src="#video1"
       width="1"
       height="0.5625"
-      position="0 0 0"
+      position="0 0.01 0"
       rotation="-90 0 0"
-      play-video-on-marker="target: #video1">
+      play-video-on-marker="target: #video1; marker: #marker1">
     </a-video>
   </a-nft>
 
   <!-- 🔹 2번 NFT 마커 -->
   <a-nft
+    id="marker2"
     type="nft"
     url="markers/2"
     smooth="true"
     smoothCount="10"
     smoothTolerance="0.01"
     smoothThreshold="5">
+    
+    <a-box color="#00E5FF"
+           position="0 0 0"
+           rotation="-90 0 0"
+           width="1"
+           height="1"
+           depth="0.01">
+    </a-box>
+
     <a-video
+      id="plane2"
       src="#video2"
       width="1"
       height="0.5625"
-      position="0 0 0"
+      position="0 0.01 0"
       rotation="-90 0 0"
-      play-video-on-marker="target: #video2">
+      play-video-on-marker="target: #video2; marker: #marker2">
     </a-video>
   </a-nft>
 
   <a-entity camera></a-entity>
 </a-scene>
 
+<div id="hint-wrap">
+  <div id="hint">포토카드를 화면에 가득 차게 비추면 노란/파란 박스가 먼저 보여야 해.</div>
+</div>
+
 <script>
-  // 마커 보이면 target 영상 재생, 사라지면 일시정지
+  // 마커/영상 디버그용 컴포넌트
   AFRAME.registerComponent('play-video-on-marker', {
-    schema: { target: { type: 'selector' } },
+    schema: {
+      target: { type: 'selector' }, // video
+      marker: { type: 'selector' }  // a-nft
+    },
     init: function () {
-      const markerEl = this.el.parentEl;
+      const markerEl = this.data.marker || this.el.parentEl;
       const videoEl = this.data.target;
-      if (!markerEl || !videoEl) return;
+      const hintEl = document.getElementById('hint');
+
+      if (!markerEl || !videoEl) {
+        console.warn('play-video-on-marker: marker 혹은 video 누락');
+        return;
+      }
 
       markerEl.addEventListener('markerFound', () => {
-        videoEl.play().catch(() => {});
+        hintEl.textContent = markerEl.id + ' 인식됨 → 영상 재생 시도 중';
+        videoEl.play().catch(err => {
+          console.warn('video play blocked', err);
+          hintEl.textContent = '마커 인식됨, 하지만 자동재생이 막혔을 수도 있음. 화면 터치해봐.';
+        });
       });
 
       markerEl.addEventListener('markerLost', () => {
         if (!videoEl.paused) videoEl.pause();
+        hintEl.textContent = '포토카드를 다시 화면에 가득 채워 비춰줘.';
       });
     }
   });
@@ -113,4 +173,3 @@
 
 </body>
 </html>
-
