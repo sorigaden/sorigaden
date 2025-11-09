@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>NFC 영상 | 소리의정원</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    video {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100dvh;
+      object-fit: contain; /* 비율 유지, 잘림 방지 */
+      background: #000;
+    }
+  </style>
+</head>
+<body>
+  <video id="nfcVideo"
+         playsinline
+         webkit-playsinline
+         controls
+         controlslist="nodownload noplaybackrate"
+         disablepictureinpicture
+         preload="auto">
+  </video>
+
+  <script src="../../../config.js"></script>
+  <script>
+    document.addEventListener('contextmenu', e => e.preventDefault());
+
+    const video = document.getElementById('nfcVideo');
+    const FALLBACK_URL =
+      "https://firebasestorage.googleapis.com/v0/b/sorigaden.firebasestorage.app/o/we%2Fnfc%2Fnfc1.mp4?alt=media&token=036341fb-af8d-4458-8980-5683546f1d06";
+    const videoUrl =
+      (typeof NFC1_VIDEO_URL !== 'undefined' && NFC1_VIDEO_URL)
+        ? NFC1_VIDEO_URL
+        : FALLBACK_URL;
+    video.src = videoUrl;
+
+    // 1단계: 소리 있는 자동재생 시도
+    video.autoplay = true;
+    video.muted = false;
+    video.play()
+      .then(() => {
+        // 성공: 소리 포함 자동재생 허용
+        console.log(' 소리 포함 자동재생 성공');
+      })
+      .catch(err => {
+        //  실패 시: 무음으로 재시도
+        console.warn(' 소리 자동재생 실패, 무음 재시도:', err);
+        video.muted = true;
+        video.play().catch(() => {});
+      });
+
+    // iOS 등에서 첫 탭에 소리 켜기
+    video.addEventListener('click', () => {
+      if (video.muted) {
+        video.muted = false;
+        video.play().catch(() => {});
+      }
+    });
+  </script>
+</body>
+</html>
