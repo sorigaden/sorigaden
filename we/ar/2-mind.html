@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>소리가든 AR - 1번 포토카드</title>
+  <title>소리가든 AR - 2번 포토카드</title>
 
   <!-- A-Frame + MindAR -->
   <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
@@ -44,12 +44,12 @@
   embedded
   vr-mode-ui="enabled: false"
   device-orientation-permission-ui="enabled: true"
-  mindar-image="imageTargetSrc: /we/ar/mind/card1.mind; autoStart: true; uiLoading: true; uiScanning: true; uiError: true;"
+  mindar-image="imageTargetSrc: /we/ar/mind/card2.mind; autoStart: true; uiLoading: true; uiScanning: true; uiError: true;"
   renderer="colorManagement: true; physicallyCorrectLights: true"
 >
   <a-assets>
-    <video id="video1"
-      src="https://firebasestorage.googleapis.com/v0/b/sorigaden.firebasestorage.app/o/we%2Far%2F1.mp4?alt=media&amp;token=0c289a1d-0346-4c63-a08f-996d94f86dc2"
+    <video id="video2"
+      src="https://firebasestorage.googleapis.com/v0/b/sorigaden.firebasestorage.app/o/we%2Far%2F2.mp4?alt=media&amp;token=866679ed-8850-44a8-b82e-f73e3e60b128"
       preload="auto"
       playsinline
       webkit-playsinline
@@ -61,11 +61,10 @@
   <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
   <!-- 타겟 인식되면 여기 내용이 포토카드 위에 붙음 -->
-  <a-entity id="target1" mindar-image-target="targetIndex: 0">
-    <!-- 영상 크게: 카드보다 약간 크게 덮게 -->
+  <a-entity id="target2" mindar-image-target="targetIndex: 0">
     <a-video
-      id="video-plane1"
-      src="#video1"
+      id="video-plane2"
+      src="#video2"
       width="1"
       height="0.5625"
       position="0 0 0"
@@ -77,48 +76,43 @@
 <script>
   const statusEl = document.getElementById('status');
   const sceneEl = document.querySelector('a-scene');
-  const targetEl = document.getElementById('target1');
-  const videoEl = document.getElementById('video1');
+  const targetEl = document.getElementById('target2');
+  const videoEl = document.getElementById('video2');
   let tapped = false;
 
   function setStatus(msg) {
     statusEl.textContent = msg;
   }
 
-  // AR 준비 완료
   sceneEl.addEventListener('arReady', () => {
-    setStatus('카메라 준비 완료! 1번 포토카드를 화면 가득 채우게 비춰줘.');
+    setStatus('카메라 준비 완료! 2번 포토카드를 화면 가득 채우게 비춰줘.');
   });
 
-  // AR 에러
   sceneEl.addEventListener('arError', () => {
     setStatus('AR 초기화 실패. Safari/Chrome에서 열고, 카메라 권한/HTTPS 확인해줘.');
   });
 
-  // 타겟 인식
   targetEl.addEventListener('targetFound', () => {
-    setStatus('1번 인식! (영상 재생 중, 안 보이면 화면 한 번 터치)');
+    setStatus('2번 인식! (영상 재생 중, 안 보이면 화면 한 번 터치)');
     tryPlay('auto');
   });
 
-  // 타겟 놓침
   targetEl.addEventListener('targetLost', () => {
     if (!videoEl.paused) videoEl.pause();
-    setStatus('1번 포토카드를 다시 화면에 가득 비춰줘.');
+    setStatus('2번 포토카드를 다시 화면에 가득 비춰줘.');
   });
 
   function tryPlay(from) {
     if (!videoEl.paused) return;
     videoEl.play().then(() => {
-      setStatus('1번 인식! 영상 재생 중.');
+      setStatus('2번 인식! 영상 재생 중.');
     }).catch(() => {
       if (from === 'auto') {
-        setStatus('1번 인식! 화면 한 번 터치해서 영상 재생해줘.');
+        setStatus('2번 인식! 화면 한 번 터치해서 영상 재생해줘.');
       }
     });
   }
 
-  // 터치 시 재생 재시도 (iOS 자동재생 우회)
   document.body.addEventListener('click', () => {
     if (!tapped) {
       tapped = true;
