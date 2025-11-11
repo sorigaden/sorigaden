@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>소리가든 AR - 1번 포토카드</title>
+
+  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+
+  <style>
+    body { margin: 0; overflow: hidden; }
+    #status {
+      position: fixed;
+      left: 50%;
+      bottom: 12px;
+      transform: translateX(-50%);
+      padding: 6px 14px;
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      font-size: 11px;
+      border-radius: 999px;
+      z-index: 10;
+      white-space: nowrap;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div id="status">1번 포토카드를 카메라에 비춰줘.</div>
+
+<a-scene
+  embedded
+  vr-mode-ui="enabled: false"
+  arjs="sourceType: webcam; debugUIEnabled: false;"
+>
+  <a-assets>
+    <video id="video1"
+      src="https://firebasestorage.googleapis.com/v0/b/sorigaden.firebasestorage.app/o/we%2Far%2F1.mp4?alt=media&amp;token=0c289a1d-0346-4c63-a08f-996d94f86dc2"
+      preload="auto"
+      playsinline
+      webkit-playsinline
+      crossorigin="anonymous"
+      muted
+      loop></video>
+  </a-assets>
+
+  <!-- 1번 포카용 패턴 마커 -->
+  <a-marker type="pattern" url="markers/1.patt" id="marker1">
+    <!-- 마커 위에 뜨는 비디오 -->
+    <a-video src="#video1"
+      id="video-plane1"
+      width="1"
+      height="0.5625"
+      position="0 0 0"
+      rotation="-90 0 0">
+    </a-video>
+  </a-marker>
+
+  <a-entity camera></a-entity>
+</a-scene>
+
+<script>
+  const statusEl = document.getElementById('status');
+  const marker = document.getElementById('marker1');
+  const video = document.getElementById('video1');
+
+  marker.addEventListener('markerFound', () => {
+    statusEl.textContent = '1번 인식! 영상 재생 중 (안 나오면 화면 한 번 터치).';
+    video.play().catch(() => {
+      statusEl.textContent = '1번 인식! 화면 한 번 터치해서 영상 재생해줘.';
+    });
+  });
+
+  marker.addEventListener('markerLost', () => {
+    if (!video.paused) video.pause();
+    statusEl.textContent = '1번 포토카드를 다시 비춰줘.';
+  });
+
+  document.body.addEventListener('click', () => {
+    if (video.paused) video.play().catch(() => {});
+  }, { passive: true });
+</script>
+
+</body>
+</html>
