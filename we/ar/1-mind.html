@@ -9,12 +9,33 @@
   <script src="https://unpkg.com/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 
   <style>
-    body { margin:0; overflow:hidden; background:#000; font-family:-apple-system,system-ui,"Noto Sans KR",sans-serif; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      font-family: -apple-system, system-ui, "Noto Sans KR", sans-serif;
+    }
+    /* MindAR 컨테이너 전체화면 */
+    body > div[a-scene],
+    canvas, video {
+      touch-action: none;
+    }
     #status {
-      position:fixed; left:50%; bottom:16px; transform:translateX(-50%);
-      padding:6px 14px; background:rgba(0,0,0,0.7); color:#fff;
-      font-size:11px; border-radius:999px; z-index:10; white-space:nowrap;
-      text-align:center;
+      position: fixed;
+      left: 50%;
+      bottom: 16px;
+      transform: translateX(-50%);
+      padding: 6px 14px;
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      font-size: 11px;
+      border-radius: 999px;
+      z-index: 10;
+      white-space: nowrap;
+      text-align: center;
+      pointer-events: none;
     }
   </style>
 </head>
@@ -24,47 +45,75 @@
 
 <a-scene
   embedded
-  vr-mode-ui="enabled:false"
-  device-orientation-permission-ui="enabled:true"
+  vr-mode-ui="enabled: false"
+  device-orientation-permission-ui="enabled: true"
   mindar-image="imageTargetSrc: mind/card1.mind; autoStart: true; uiLoading: false; uiScanning: false; uiError: false;"
-  renderer="colorManagement: true, physicallyCorrectLights: true">
-
+  renderer="colorManagement: true; physicallyCorrectLights: true"
+>
   <a-assets>
     <video id="video1"
       src="https://firebasestorage.googleapis.com/v0/b/sorigaden.firebasestorage.app/o/we%2Far%2F1.mp4?alt=media&amp;token=0c289a1d-0346-4c63-a08f-996d94f86dc2"
-      preload="auto" playsinline webkit-playsinline
-      crossorigin="anonymous" muted loop></video>
+      preload="auto"
+      playsinline
+      webkit-playsinline
+      crossorigin="anonymous"
+      muted
+      loop></video>
   </a-assets>
 
-  <a-camera position="0 0 0" look-controls="enabled:false"></a-camera>
+  <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
+  <!-- card1.mind 안의 첫 번째 타겟 -->
   <a-entity id="target1" mindar-image-target="targetIndex: 0">
     <a-video
       id="video-plane1"
       src="#video1"
-      width="1" height="0.5625"
-      position="0 0 0" rotation="0 0 0">
+      width="1"
+      height="0.5625"
+      position="0 0 0"
+      rotation="0 0 0">
     </a-video>
   </a-entity>
 </a-scene>
 
 <script>
-  const status = document.getElementById('status');
-  const t = document.getElementById('target1');
-  const v = document.getElementById('video1');
+  const statusEl = document.getElementById('status');
+  const targetEl = document.getElementById('target1');
+  const videoEl = document.getElementById('video1');
 
-  t.addEventListener('targetFound', () => {
-    status.textContent = '1번 인식! 영상 재생 중.';
-    v.play().catch(() => {
-      status.textContent = '1번 인식! 화면 한 번 터치해서 재생해줘.';
+  let userInteracted = false;
+
+  function tryPlayVideo(from) {
+    if (!videoEl.paused) return;
+    videoEl.play().then(() => {
+      statusEl.textContent = '1번 인식! 영상 재생 중.';
+    }).catch(() => {
+      if (from === 'auto') {
+        statusEl.textContent = '1번 인식! 화면을 한 번 터치해서 영상 재생해줘.';
+      }
     });
+  }
+
+  // 마커 인식되었을 때
+  targetEl.addEventListener('targetFound', () => {
+    tryPlayVideo('auto');
   });
 
-  t.addEventListener('targetLost', () => {
-    status.textContent = '1번 포토카드를 다시 화면에 가득 비춰줘.';
-    if (!v.paused) v.pause();
+  // 마커 놓쳤을 때
+  targetEl.addEventListener('targetLost', () => {
+    if (!videoEl.paused) videoEl.pause();
+    statusEl.textContent = '1번 포토카드를 다시 화면에 가득 비춰줘.';
   });
+
+  // 사용자가 아무 데나 한 번 터치하면 재생 시도 (iOS 자동재생 제한 우회)
+  document.body.addEventListener('click', () => {
+    if (!userInteracted) {
+      userInteracted = true;
+      tryPlayVideo('tap');
+    }
+  }, { passive: true });
 </script>
 
 </body>
 </html>
+
