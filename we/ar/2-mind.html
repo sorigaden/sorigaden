@@ -13,6 +13,7 @@
     html, body {
       margin: 0;
       padding: 0;
+      width: 100%;
       height: 100%;
       overflow: hidden;
       background: #000;
@@ -35,21 +36,6 @@
       text-align: center;
       pointer-events: none;
     }
-
-    a-scene {
-      position: fixed;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: 1;
-    }
-
-    a-scene > canvas,
-    a-scene video {
-      width: 100vw !important;
-      height: 100vh !important;
-      object-fit: cover;
-    }
   </style>
 </head>
 <body>
@@ -57,9 +43,9 @@
 <div id="status">로딩 중... 카메라 허용해줘.</div>
 
 <a-scene
+  mindar-image="imageTargetSrc: /we/ar/mind/card2.mind; autoStart: true; uiLoading: true; uiScanning: true; uiError: true;"
   vr-mode-ui="enabled: false"
   device-orientation-permission-ui="enabled: true"
-  mindar-image="imageTargetSrc: /we/ar/mind/card2.mind; autoStart: true; uiLoading: true; uiScanning: true; uiError: true;"
   renderer="colorManagement: true; physicallyCorrectLights: true"
 >
   <a-assets>
@@ -73,7 +59,7 @@
       loop></video>
   </a-assets>
 
-  <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+  <a-camera look-controls="enabled: false" position="0 0 0"></a-camera>
 
   <a-entity id="target2" mindar-image-target="targetIndex: 0">
     <a-video
@@ -102,12 +88,13 @@
     setStatus('카메라 준비 완료! 2번 포토카드를 화면 가득 채우게 비춰줘.');
   });
 
-  sceneEl.addEventListener('arError', () => {
-    setStatus('AR 초기화 실패. Safari/Chrome에서 열고, 카메라 권한 켜져있는지 확인해줘.');
+  sceneEl.addEventListener('arError', (e) => {
+    console.error('arError', e);
+    setStatus('AR 초기화 실패. Safari/Chrome 앱에서 열고, 카메라 권한/HTTPS 확인해줘.');
   });
 
   targetEl.addEventListener('targetFound', () => {
-    setStatus('2번 인식! (영상 자동 재생 시도 중, 안 보이면 화면 한 번 터치)');
+    setStatus('2번 인식! (영상 재생 시도 중, 안 보이면 화면 한 번 터치)');
     tryPlay('auto');
   });
 
@@ -120,7 +107,8 @@
     if (!videoEl.paused) return;
     videoEl.play().then(() => {
       setStatus('2번 인식! 영상 재생 중.');
-    }).catch(() => {
+    }).catch((err) => {
+      console.warn('video play error', err);
       if (from === 'auto') {
         setStatus('2번 인식! 화면 한 번 터치해서 영상 재생해줘.');
       }
@@ -137,4 +125,3 @@
 
 </body>
 </html>
-
