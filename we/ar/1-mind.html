@@ -18,6 +18,8 @@
       background: #000;
       font-family: -apple-system, system-ui, "Noto Sans KR", sans-serif;
     }
+
+    /* 상태 텍스트 */
     #status {
       position: fixed;
       left: 50%;
@@ -34,6 +36,22 @@
       text-align: center;
       pointer-events: none;
     }
+
+    /* AR 화면 전체 채우기 */
+    a-scene {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+    }
+
+    a-scene > canvas,
+    a-scene video {
+      width: 100vw !important;
+      height: 100vh !important;
+      object-fit: cover;
+    }
   </style>
 </head>
 <body>
@@ -41,7 +59,6 @@
 <div id="status">로딩 중... 카메라 허용해줘.</div>
 
 <a-scene
-  embedded
   vr-mode-ui="enabled: false"
   device-orientation-permission-ui="enabled: true"
   mindar-image="imageTargetSrc: /we/ar/mind/card1.mind; autoStart: true; uiLoading: true; uiScanning: true; uiError: true;"
@@ -60,9 +77,8 @@
 
   <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-  <!-- 타겟 인식되면 여기 내용이 포토카드 위에 붙음 -->
+  <!-- 타겟 인식되면 포토카드 위에 영상 붙음 -->
   <a-entity id="target1" mindar-image-target="targetIndex: 0">
-    <!-- 영상 크게: 카드보다 약간 크게 덮게 -->
     <a-video
       id="video-plane1"
       src="#video1"
@@ -79,6 +95,7 @@
   const sceneEl = document.querySelector('a-scene');
   const targetEl = document.getElementById('target1');
   const videoEl = document.getElementById('video1');
+
   let tapped = false;
 
   function setStatus(msg) {
@@ -92,12 +109,12 @@
 
   // AR 에러
   sceneEl.addEventListener('arError', () => {
-    setStatus('AR 초기화 실패. Safari/Chrome에서 열고, 카메라 권한/HTTPS 확인해줘.');
+    setStatus('AR 초기화 실패. Safari/Chrome에서 열고, 카메라 권한 켜져있는지 확인해줘.');
   });
 
   // 타겟 인식
   targetEl.addEventListener('targetFound', () => {
-    setStatus('1번 인식! (영상 재생 중, 안 보이면 화면 한 번 터치)');
+    setStatus('1번 인식! (영상 자동 재생 시도 중, 안 보이면 화면 한 번 터치)');
     tryPlay('auto');
   });
 
@@ -129,3 +146,4 @@
 
 </body>
 </html>
+
