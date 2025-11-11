@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>소리가든 AR - 1번 포토카드</title>
 
+  <!-- A-Frame + MindAR -->
   <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
   <script src="https://unpkg.com/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 
@@ -17,7 +18,6 @@
       background: #000;
       font-family: -apple-system, system-ui, "Noto Sans KR", sans-serif;
     }
-
     #status {
       position: fixed;
       left: 50%;
@@ -31,19 +31,19 @@
       z-index: 10;
       white-space: nowrap;
       text-align: center;
-      pointer-events: none;
+      max-width: 90vw;
     }
   </style>
 </head>
 <body>
 
-<div id="status">1번 포토카드를 화면에 가득 비춰봐.</div>
+<div id="status">로딩 중...</div>
 
 <a-scene
   embedded
   vr-mode-ui="enabled: false"
   device-orientation-permission-ui="enabled: true"
-  mindar-image="imageTargetSrc: mind/card1.mind; autoStart: true; uiLoading: false; uiScanning: false; uiError: false;"
+  mindar-image="imageTargetSrc: https://sorigaden.github.io/sorigaden/we/ar/mind/card1.mind; autoStart: true; uiLoading: false; uiScanning: false; uiError: false;"
   renderer="colorManagement: true; physicallyCorrectLights: true"
 >
   <a-assets>
@@ -73,40 +73,58 @@
 
 <script>
   const statusEl = document.getElementById('status');
+  const sceneEl = document.querySelector('a-scene');
   const targetEl = document.getElementById('target1');
   const videoEl = document.getElementById('video1');
-
   let userInteracted = false;
+
+  function setStatus(msg) {
+    statusEl.textContent = msg;
+  }
 
   function tryPlayVideo(from) {
     if (!videoEl.paused) return;
     videoEl.play().then(() => {
-      statusEl.textContent = '1번 인식! 영상 재생 중.';
+      setStatus('1번 인식! 영상 재생 중.');
     }).catch(() => {
       if (from === 'auto') {
-        statusEl.textContent = '1번 인식! 화면을 한 번 터치해서 영상 재생해줘.';
+        setStatus('1번 인식! 화면을 한 번 터치해서 영상 재생해줘.');
       }
     });
   }
 
+  // MindAR 준비 완료
+  sceneEl.addEventListener('arReady', () => {
+    setStatus('카메라 준비 완료. 1번 포토카드를 화면에 가득 비춰줘.');
+  });
+
+  // MindAR / 카메라 에러
+  sceneEl.addEventListener('arError', (e) => {
+    console.log('arError', e);
+    setStatus('AR 초기화 실패: 브라우저에서 카메라 허용 + 인앱브라우저 말고 Safari/Chrome에서 열어줘.');
+  });
+
+  // 타겟 인식/손실
   targetEl.addEventListener('targetFound', () => {
     tryPlayVideo('auto');
   });
 
   targetEl.addEventListener('targetLost', () => {
     if (!videoEl.paused) videoEl.pause();
-    statusEl.textContent = '1번 포토카드를 다시 화면에 가득 비춰줘.';
+    setStatus('1번 포토카드를 다시 화면에 가득 비춰줘.');
   });
 
-  // 사용자가 화면 어디든 한 번만 탭해도 재생 재시도 (iOS 자동재생 제한 우회)
+  // 탭하면 재생 재시도 (iOS 자동재생 제한 우회)
   document.body.addEventListener('click', () => {
     if (!userInteracted) {
       userInteracted = true;
       tryPlayVideo('tap');
     }
   }, { passive: true });
+
+  // 처음 상태
+  setStatus('로딩 중... 카메라 허용 팝업이 뜨면 허용을 눌러줘.');
 </script>
 
 </body>
 </html>
-
