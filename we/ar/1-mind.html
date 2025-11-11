@@ -17,11 +17,7 @@
       background: #000;
       font-family: -apple-system, system-ui, "Noto Sans KR", sans-serif;
     }
-    /* MindAR 컨테이너 전체화면 */
-    body > div[a-scene],
-    canvas, video {
-      touch-action: none;
-    }
+
     #status {
       position: fixed;
       left: 50%;
@@ -63,7 +59,6 @@
 
   <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-  <!-- card1.mind 안의 첫 번째 타겟 -->
   <a-entity id="target1" mindar-image-target="targetIndex: 0">
     <a-video
       id="video-plane1"
@@ -94,18 +89,16 @@
     });
   }
 
-  // 마커 인식되었을 때
   targetEl.addEventListener('targetFound', () => {
     tryPlayVideo('auto');
   });
 
-  // 마커 놓쳤을 때
   targetEl.addEventListener('targetLost', () => {
     if (!videoEl.paused) videoEl.pause();
     statusEl.textContent = '1번 포토카드를 다시 화면에 가득 비춰줘.';
   });
 
-  // 사용자가 아무 데나 한 번 터치하면 재생 시도 (iOS 자동재생 제한 우회)
+  // 사용자가 화면 어디든 한 번만 탭해도 재생 재시도 (iOS 자동재생 제한 우회)
   document.body.addEventListener('click', () => {
     if (!userInteracted) {
       userInteracted = true;
