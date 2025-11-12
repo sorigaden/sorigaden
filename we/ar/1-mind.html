@@ -1,88 +1,83 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>소리가든 AR - 1번 포토카드</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>1번 AR</title>
 
-  <!-- A-Frame + MindAR -->
-  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-  <script src="https://unpkg.com/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+    <!-- MindAR + A-Frame -->
+    <script src="https://cdn.jsdelivr.net/npm/aframe@1.2.0/dist/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.3/dist/mindar-image-aframe.prod.js"></script>
 
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: #000;
-      font-family: -apple-system, system-ui, "Noto Sans KR", sans-serif;
-    }
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        background-color: black;
+      }
+      #loadingText {
+        position: fixed;
+        bottom: 20px;
+        width: 100%;
+        text-align: center;
+        color: white;
+        font-size: 13px;
+        font-family: 'Apple SD Gothic Neo', sans-serif;
+      }
+    </style>
+  </head>
 
-    #status {
-      position: fixed;
-      left: 50%;
-      bottom: 16px;
-      transform: translateX(-50%);
-      padding: 6px 14px;
-      background: rgba(0,0,0,0.7);
-      color: #fff;
-      font-size: 11px;
-      border-radius: 999px;
-      z-index: 10;
-      white-space: nowrap;
-      max-width: 90vw;
-      text-align: center;
-      pointer-events: none;
-    }
-  </style>
-</head>
-<body>
+  <body>
+    <div id="loadingText">로딩 중... 카메라를 허용해줘.</div>
 
-<div id="status">로딩 중... 카메라 허용해줘.</div>
+    <a-scene
+      mindar-image="imageTargetSrc: ./mind/card1.mind; filterMinCF: 0.0001; filterBeta: 0.001;"
+      color-space="sRGB"
+      renderer="colorManagement: true, physicallyCorrectLights"
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false"
+      embedded
+      id="scene"
+    >
+      <a-assets>
+        <video
+          id="v1"
+          src="./videos/1.mp4"
+          playsinline
+          webkit-playsinline
+          preload="auto"
+          muted
+          crossorigin="anonymous"
+        ></video>
+      </a-assets>
 
-<a-scene
-  mindar-image="imageTargetSrc: /we/ar/mind/card1.mind; autoStart: true; uiLoading: true; uiScanning: true; uiError: true;"
-  vr-mode-ui="enabled: false"
-  device-orientation-permission-ui="enabled: true"
-  renderer="colorManagement: true; physicallyCorrectLights: true"
->
-  <a-assets>
-    <video id="video1"
-      src="/we/ar/videos/1.mp4"
-      preload="auto"
-      playsinline
-      webkit-playsinline
-      muted
-      loop></video>
-  </a-assets>
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-  <a-camera look-controls="enabled: false" position="0 0 0"></a-camera>
+      <a-entity mindar-image-target="targetIndex: 0">
+        <a-video
+          src="#v1"
+          position="0 0 0"
+          rotation="0 0 0"
+          width="1.4"
+          height="2.0"
+          scale="1.8 1.8 1.8"
+          autoplay="true"
+        ></a-video>
+      </a-entity>
+    </a-scene>
 
-  <a-entity id="target1" mindar-image-target="targetIndex: 0">
-    <a-video
-      id="video-plane1"
-      src="#video1"
-      width="1"
-      height="0.5625"
-      position="0 0 0"
-      rotation="0 0 0">
-    </a-video>
-  </a-entity>
-</a-scene>
+    <script>
+      const video = document.querySelector('#v1');
+      video.addEventListener('loadeddata', () => {
+        document.getElementById('loadingText').innerText =
+          '카메라 준비 완료! 1번 포토카드를 화면 가득 채우게 비춰줘.';
+      });
 
-<script>
-  const statusEl = document.getElementById('status');
-  const sceneEl = document.querySelector('a-scene');
-  const targetEl = document.getElementById('target1');
-  const videoEl = document.getElementById('video1');
-  let tapped = false;
-
-  function setStatus(msg) {
-    statusEl.textContent = msg;
-  }
-
-  sceneEl.addEventListener('arReady', () => {
-    setS
+      // 터치 시 수동재생 보조
+      document.body.addEventListener('touchstart', () => {
+        if (video.paused) video.play().catch(() => {});
+      });
+    </script>
+  </body>
+</html>
 
