@@ -50,11 +50,10 @@
 >
   <a-assets>
     <video id="video2"
-      src="https://firebasestorage.googleapis.com/v0/b/sorigaden.firebasestorage.app/o/we%2Far%2F2.mp4?alt=media&amp;token=866679ed-8850-44a8-b82e-f73e3e60b128"
+      src="/we/ar/videos/2.mp4"
       preload="auto"
       playsinline
       webkit-playsinline
-      crossorigin="anonymous"
       muted
       loop></video>
   </a-assets>
@@ -94,7 +93,7 @@
   });
 
   targetEl.addEventListener('targetFound', () => {
-    setStatus('2번 인식! (영상 재생 시도 중, 안 보이면 화면 한 번 터치)');
+    setStatus('2번 인식! (영상 자동 재생 시도 중, 안 보이면 화면 한 번 터치)');
     tryPlay('auto');
   });
 
@@ -125,3 +124,4 @@
 
 </body>
 </html>
+

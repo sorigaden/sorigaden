@@ -49,20 +49,17 @@
   renderer="colorManagement: true; physicallyCorrectLights: true"
 >
   <a-assets>
-    <!-- NOTE: 지금 Firebase CORS 때문에 안 보일 수 있음. 그건 아래에서 설명해줄게. -->
     <video id="video1"
-      src="https://firebasestorage.googleapis.com/v0/b/sorigaden.firebasestorage.app/o/we%2Far%2F1.mp4?alt=media&amp;token=0c289a1d-0346-4c63-a08f-996d94f86dc2"
+      src="/we/ar/videos/1.mp4"
       preload="auto"
       playsinline
       webkit-playsinline
-      crossorigin="anonymous"
       muted
       loop></video>
   </a-assets>
 
   <a-camera look-controls="enabled: false" position="0 0 0"></a-camera>
 
-  <!-- 타겟 인식되면 영상 오버레이 -->
   <a-entity id="target1" mindar-image-target="targetIndex: 0">
     <a-video
       id="video-plane1"
@@ -86,47 +83,6 @@
     statusEl.textContent = msg;
   }
 
-  // AR 준비 완료 = 카메라 스트림 붙음
   sceneEl.addEventListener('arReady', () => {
-    setStatus('카메라 준비 완료! 1번 포토카드를 화면 가득 채우게 비춰줘.');
-  });
+    setS
 
-  sceneEl.addEventListener('arError', (e) => {
-    console.error('arError', e);
-    setStatus('AR 초기화 실패. Safari/Chrome 앱에서 열고, 카메라 권한/HTTPS 확인해줘.');
-  });
-
-  // 타겟 인식
-  targetEl.addEventListener('targetFound', () => {
-    setStatus('1번 인식! (영상 재생 시도 중, 안 보이면 화면 한 번 터치)');
-    tryPlay('auto');
-  });
-
-  // 타겟 놓침
-  targetEl.addEventListener('targetLost', () => {
-    if (!videoEl.paused) videoEl.pause();
-    setStatus('1번 포토카드를 다시 화면에 가득 비춰줘.');
-  });
-
-  function tryPlay(from) {
-    if (!videoEl.paused) return;
-    videoEl.play().then(() => {
-      setStatus('1번 인식! 영상 재생 중.');
-    }).catch((err) => {
-      console.warn('video play error', err);
-      if (from === 'auto') {
-        setStatus('1번 인식! 화면 한 번 터치해서 영상 재생해줘.');
-      }
-    });
-  }
-
-  document.body.addEventListener('click', () => {
-    if (!tapped) {
-      tapped = true;
-      tryPlay('tap');
-    }
-  }, { passive: true });
-</script>
-
-</body>
-</html>
