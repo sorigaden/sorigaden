@@ -1,131 +1,128 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <title>AR 1</title>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>AR 1 (force camera)</title>
 
-  <!-- three.js + MindAR (three 버전) -->
-  <script src="https://unpkg.com/three@0.152.2/build/three.min.js"></script>
-  <script src="https://unpkg.com/mind-ar@1.2.3/dist/mindar-image-three.prod.js"></script>
+  <!-- A-Frame + MindAR -->
+  <script src="https://cdn.jsdelivr.net/npm/aframe@1.2.0/dist/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.3/dist/mindar-image-aframe.prod.js"></script>
 
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: #000;
-      touch-action: none;
-      -webkit-user-select: none;
-      user-select: none;
+    html, body { margin:0; padding:0; width:100%; height:100%; background:#000; overflow:hidden; }
+
+    /* MindAR가 만든 레이어들을 '무조건' 화면 정중앙 풀사이즈로 */
+    a-scene, canvas.a-canvas {
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
     }
-    #container {
-      position: fixed;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-      background: #000;
+
+    /* 카메라 영상 강제 노출(가장 중요한 부분) */
+    video.mindar-video {
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      object-fit: cover !important;
+      z-index: 1 !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      transform: none !important; /* 필요하면 scaleX(-1)로 셀피 반전 */
+      background:#000 !important;
     }
+
+    /* 렌더 캔버스는 카메라 위로 */
+    canvas.a-canvas { z-index: 2 !important; }
+
+    /* MindAR 스캐닝 UI는 최상단 */
+    .mindar-ui-overlay { z-index: 3 !important; }
+
     #hint {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 16px;
-      text-align: center;
-      color: #fff;
-      font-size: 13px;
-      font-family: -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Segoe UI",Roboto,sans-serif;
-      text-shadow: 0 1px 2px rgba(0,0,0,.7);
-      z-index: 10;
-      pointer-events: none;
+      position: fixed; left: 0; right: 0; bottom: 18px;
+      color: #fff; text-align: center; font-size: 13px;
+      font-family: -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Segoe UI,Roboto,Arial,sans-serif;
+      z-index: 4;
     }
   </style>
 </head>
 <body>
-  <div id="container"></div>
-  <div id="hint">로딩 중… 카메라 허용해줘.</div>
+  <div id="hint">로딩 중… 카메라 허용 후 1번 포토카드를 화면 가득 채워서 비춰줘.</div>
 
-  <!-- AR용 비디오 (텍스처로 쓰는 용도) -->
-  <video id="video1"
-         src="./videos/1.mp4"
-         playsinline
-         webkit-playsinline
-         muted
-         preload="auto"
-         style="display:none"></video>
+  <a-scene
+    mindar-image="imageTargetSrc: ./mind/card1.mind; uiScanning: true; filterMinCF:0.0001; filterBeta:0.001;"
+    renderer="colorManagement:true, physicallyCorrectLights, logarithmicDepthBuffer:true"
+    vr-mode-ui="enabled:false"
+    device-orientation-permission-ui="enabled:false"
+    embedded
+    id="scene">
+    <a-assets timeout="15000">
+      <video id="v1" src="./videos/1.mp4" preload="auto" playsinline webkit-playsinline muted crossorigin="anonymous"></video>
+    </a-assets>
 
-<script>
-  const hintEl = document.getElementById('hint');
-  const videoEl = document.getElementById('video1');
+    <a-camera look-controls="enabled:false"></a-camera>
 
-  const setHint = (msg) => { hintEl.textContent = msg; };
+    <!-- 타겟 올리면 비디오 오버레이 -->
+    <a-entity mindar-image-target="targetIndex: 0">
+      <a-video src="#v1" position="0 0 0" rotation="0 0 0" width="1.4" height="2.0"
+               scale="1.8 1.8 1.8" autoplay="true"></a-video>
+    </a-entity>
+  </a-scene>
 
-  document.addEventListener("DOMContentLoaded", async () => {
-    const mindarThree = new window.MINDAR.IMAGE.MindARThree({
-      container: document.querySelector("#container"),
-      imageTargetSrc: "./mind/card1.mind",
-      uiLoading: true,
-      uiScanning: true,
-      uiError: true,
-    });
+  <script>
+    const scene = document.getElementById('scene');
+    const hint  = document.getElementById('hint');
+    const v1    = document.getElementById('v1');
 
-    const {renderer, scene, camera} = mindarThree;
-
-    // 조명 (없어도 되지만 살짝 넣어줌)
-    const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
-    scene.add(light);
-
-    // 비디오 텍스처 준비
-    const texture = new THREE.VideoTexture(videoEl);
-    texture.encoding = THREE.sRGBEncoding;
-
-    // 비디오가 맵핑될 평면 (비율 16:9 가정 → 1.6 : 0.9 정도)
-    const geometry = new THREE.PlaneGeometry(1.4, 0.8);
-    const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
-    const plane = new THREE.Mesh(geometry, material);
-
-    // 0번 타겟에 붙이기
-    const anchor = mindarThree.addAnchor(0);
-    anchor.group.add(plane);
-
-    anchor.onTargetFound = () => {
-      setHint("인식됨! 화면을 한 번 터치하면 영상이 재생돼.");
-      videoEl.play().catch(() => {/* iOS는 터치 필요할 수 있음 */});
-    };
-    anchor.onTargetLost = () => {
-      setHint("타겟이 벗어났어. 다시 포토카드를 맞춰줘.");
-      // 필요하면 pause
-      // videoEl.pause();
-    };
-
-    // 비디오 준비되면 안내 문구 변경
-    videoEl.addEventListener("canplay", () => {
-      setHint("카메라 준비 완료! 1번 포토카드를 화면 가득 채워서 비춰줘.");
-    });
-
-    // iOS 자동재생 대응: 첫 터치에서 재생 시도
-    document.body.addEventListener("touchend", () => {
-      if (videoEl.paused) videoEl.play().catch(()=>{});
-    }, {passive:true});
-
-    // AR 시작
-    const start = async () => {
-      await mindarThree.start();
-      renderer.setAnimationLoop(() => {
-        renderer.render(scene, camera);
-      });
-    };
-
-    try {
-      await start();
-    } catch (e) {
-      console.error(e);
-      setHint("AR 시작 중 오류가 발생했어. HTTPS/카메라 권한/브라우저를 확인해줘.");
+    // MindAR가 비디오 엘리먼트를 생성/붙일 때를 대비해 "강제 스타일"을 반복 적용
+    function forceCameraStyle() {
+      const cam = document.querySelector('video.mindar-video');
+      if (cam) {
+        cam.style.position   = 'fixed';
+        cam.style.inset      = '0';
+        cam.style.width      = '100vw';
+        cam.style.height     = '100vh';
+        cam.style.objectFit  = 'cover';
+        cam.style.zIndex     = '1';
+        cam.style.opacity    = '1';
+        cam.style.visibility = 'visible';
+        cam.style.transform  = 'none';
+      }
     }
-  });
-</script>
+
+    // DOM에 비디오가 붙는 시점을 감지해서 강제 스타일
+    const mo = new MutationObserver(forceCameraStyle);
+    mo.observe(document.body, { childList: true, subtree: true });
+
+    // 주기적으로도 한 번 더 보정 (혹시 브라우저가 덮어쓸 때 대비)
+    const tick = setInterval(forceCameraStyle, 300);
+
+    scene.addEventListener('arReady', () => {
+      forceCameraStyle();
+      hint.textContent = '카메라 준비 완료! 1번 포토카드를 가득 채워서 비춰줘.';
+      setTimeout(forceCameraStyle, 200); // 늦게 붙는 케이스 한 번 더
+    });
+
+    scene.addEventListener('arError', (e) => {
+      hint.textContent = 'AR 초기화 오류가 발생했어. (권한/브라우저 확인)';
+      console.warn(e);
+    });
+
+    scene.addEventListener('targetFound', () => {
+      v1.play().catch(()=>{});
+      hint.textContent = '인식됨! 화면을 한 번 터치하면 소리와 함께 재생돼.';
+    });
+
+    scene.addEventListener('targetLost', () => {
+      hint.textContent = '타겟을 벗어났어. 다시 맞춰줘!';
+    });
+
+    // iOS 자동재생 정책 대응: 사용자 첫 터치 때 재생 보장
+    document.addEventListener('touchend', () => {
+      if (v1.paused) v1.play().catch(()=>{});
+    }, {passive:true});
+  </script>
 </body>
 </html>
