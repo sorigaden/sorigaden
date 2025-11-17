@@ -46,7 +46,7 @@
 
   <body>
     <div id="container"></div>
-    <div id="message">1번 인식! 화면 한 번 터치해서 영상 재생해줘.</div>
+    <div id="message">포토카드 인식 성공! 화면을 터치하여 영상을 재생해주세요.</div>
 
     <script>
       const start = async () => {
@@ -135,7 +135,7 @@
 
         anchor.onTargetFound = () => {
           document.getElementById("message").innerText =
-            "1번 인식! 화면 한 번 터치해서 영상 재생해줘.";
+            "포토카드 인식 성공! 화면을 터치하여 영상을 재생해주세요.";
         };
 
         anchor.onTargetLost = () => {
