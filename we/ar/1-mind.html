@@ -76,11 +76,8 @@
           uniforms: {
             map: { value: texture },
             keyColor: { value: new THREE.Color(0x0040ff) },
-            thresholdBlue: { value: 0.22 },
-            softnessBlue: { value: 0.06 },
-            borderWidth: { value: 0.15 },
-            whiteLumaMin: { value: 0.85 },
-            whiteSatMax: { value: 0.10 }
+            thresholdBlue: { value: 0.20 },
+            softnessBlue: { value: 0.05 }
           },
           vertexShader: `
             varying vec2 vUv;
@@ -95,38 +92,16 @@
             uniform vec3 keyColor;
             uniform float thresholdBlue;
             uniform float softnessBlue;
-            uniform float borderWidth;
-            uniform float whiteLumaMin;
-            uniform float whiteSatMax;
             varying vec2 vUv;
 
             void main() {
               vec4 texColor = texture2D(map, vUv);
 
               float distBlue = distance(texColor.rgb, keyColor);
-              float blueMask = smoothstep(thresholdBlue, thresholdBlue + softnessBlue, distBlue);
 
-              float maxc = max(max(texColor.r, texColor.g), texColor.b);
-              float minc = min(min(texColor.r, texColor.g), texColor.b);
-              float sat = maxc - minc;
-              float luma = dot(texColor.rgb, vec3(0.299, 0.587, 0.114));
-              float isWhite = step(whiteLumaMin, luma) * step(sat, whiteSatMax);
+              float alphaBlue = smoothstep(thresholdBlue, thresholdBlue + softnessBlue, distBlue);
 
-              float edgeX = max(
-                smoothstep(1.0 - borderWidth, 1.0, vUv.x),
-                smoothstep(1.0 - borderWidth, 1.0, 1.0 - vUv.x)
-              );
-              float edgeY = max(
-                smoothstep(1.0 - borderWidth, 1.0, vUv.y),
-                smoothstep(1.0 - borderWidth, 1.0, 1.0 - vUv.y)
-              );
-              float edgeRegion = max(edgeX, edgeY);
-
-              float whiteKeep = 1.0 - isWhite * edgeRegion;
-
-              float alpha = texColor.a * blueMask * whiteKeep;
-
-              gl_FragColor = vec4(texColor.rgb, alpha);
+              gl_FragColor = vec4(texColor.rgb, alphaBlue);
             }
           `,
           side: THREE.DoubleSide,
@@ -163,9 +138,7 @@
         document.body.addEventListener(
           "click",
           () => {
-            if (!isPlaying) {
-              playVideo();
-            }
+            if (!isPlaying) playVideo();
           },
           { passive: true }
         );
