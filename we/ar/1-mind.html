@@ -55,7 +55,6 @@
         const mindarThree = new window.MINDAR.IMAGE.MindARThree({
           container: document.querySelector("#container"),
           imageTargetSrc: "./mind/card1.mind",
-          // 🔧 떨림 줄이는 필터 옵션
           filterMinCF: 0.0001,
           filterBeta: 0.001,
         });
@@ -67,13 +66,12 @@
         video.crossOrigin = "anonymous";
         video.preload = "auto";
         video.playsInline = true;
-        video.loop = true;   // ✅ 반복 재생 ON
-        video.muted = false;
+        video.loop = true;
+        video.muted = true; // ✅ 무음 자동재생을 위해 mute ON
 
         const texture = new THREE.VideoTexture(video);
         texture.encoding = THREE.sRGBEncoding;
 
-        //
         const geometry = new THREE.PlaneGeometry(1, 1.5);
 
         const material = new THREE.ShaderMaterial({
@@ -123,24 +121,31 @@
           try {
             await video.play();
             isPlaying = true;
-          } catch (e) {}
+          } catch (e) {
+            // 자동재생 실패 시에는 터치 유도 문구
+            messageEl.innerText =
+              "카드가 인식되었어요. 화면을 한 번 터치하시면 영상이 재생됩니다.";
+          }
         };
 
         anchor.onTargetFound = () => {
-          messageEl.innerText =
-            "카드가 인식되었어요. 화면을 한 번 터치하시면 영상이 재생됩니다.";
+          messageEl.innerText = "카드가 인식되었어요. 영상을 불러오는 중입니다.";
+          if (!isPlaying) {
+            playVideo(); // ✅ 인식되면 자동 재생 시도
+          }
         };
 
         anchor.onTargetLost = () => {
           if (isPlaying) {
             video.pause();
-            video.currentTime = 0; // 다시 인식되면 처음부터
+            video.currentTime = 0;
             isPlaying = false;
           }
           messageEl.innerText =
             "카드가 화면에서 벗어났어요. 다시 카드 전체가 보이도록 비춰 주세요.";
         };
 
+        // 자동재생 막힌 경우 대비: 터치하면 재생
         document.body.addEventListener(
           "click",
           () => {

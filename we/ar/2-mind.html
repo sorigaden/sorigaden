@@ -2,7 +2,7 @@
 <html lang="ko">
   <head>
     <meta charset="utf-8" />
-    <title>소리의정원 AR - 2번 카드</title>
+    <title>소리가든 AR - 2번 카드</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.5/dist/mindar-image-three.prod.js"></script>
@@ -55,7 +55,6 @@
         const mindarThree = new window.MINDAR.IMAGE.MindARThree({
           container: document.querySelector("#container"),
           imageTargetSrc: "./mind/card2.mind",
-          // 🔧 떨림 줄이는 필터 옵션
           filterMinCF: 0.0001,
           filterBeta: 0.001,
         });
@@ -67,8 +66,8 @@
         video.crossOrigin = "anonymous";
         video.preload = "auto";
         video.playsInline = true;
-        video.loop = true;  // ✅ 반복 재생 ON
-        video.muted = false;
+        video.loop = true;
+        video.muted = true; // ✅ 무음 자동재생
 
         const texture = new THREE.VideoTexture(video);
         texture.encoding = THREE.sRGBEncoding;
@@ -122,12 +121,17 @@
           try {
             await video.play();
             isPlaying = true;
-          } catch (e) {}
+          } catch (e) {
+            messageEl.innerText =
+              "카드가 인식되었어요. 화면을 한 번 터치하시면 영상이 재생됩니다.";
+          }
         };
 
         anchor.onTargetFound = () => {
-          messageEl.innerText =
-            "카드가 인식되었어요. 화면을 한 번 터치하시면 영상이 재생됩니다.";
+          messageEl.innerText = "카드가 인식되었어요. 영상을 불러오는 중입니다.";
+          if (!isPlaying) {
+            playVideo(); // ✅ 인식되면 자동 재생 시도
+          }
         };
 
         anchor.onTargetLost = () => {
@@ -143,7 +147,9 @@
         document.body.addEventListener(
           "click",
           () => {
-            if (!isPlaying) playVideo();
+            if (!isPlaying) {
+              playVideo();
+            }
           },
           { passive: true }
         );
