@@ -55,6 +55,9 @@
         const mindarThree = new window.MINDAR.IMAGE.MindARThree({
           container: document.querySelector("#container"),
           imageTargetSrc: "./mind/card1.mind",
+          // 🔧 떨림 줄이는 필터 옵션
+          filterMinCF: 0.0001,
+          filterBeta: 0.001,
         });
 
         const { renderer, scene, camera } = mindarThree;
@@ -64,12 +67,13 @@
         video.crossOrigin = "anonymous";
         video.preload = "auto";
         video.playsInline = true;
-        video.loop = false;
+        video.loop = true;   // ✅ 반복 재생 ON
         video.muted = false;
 
         const texture = new THREE.VideoTexture(video);
         texture.encoding = THREE.sRGBEncoding;
 
+        // 포카/영상 비율에 맞춰서 이미 작업해 둔 상태라면 이 값 유지
         const geometry = new THREE.PlaneGeometry(1, 1.5);
 
         const material = new THREE.ShaderMaterial({
@@ -130,7 +134,7 @@
         anchor.onTargetLost = () => {
           if (isPlaying) {
             video.pause();
-            video.currentTime = 0;
+            video.currentTime = 0; // 다시 인식되면 처음부터
             isPlaying = false;
           }
           messageEl.innerText =
