@@ -46,7 +46,7 @@
 
   <body>
     <div id="container"></div>
-    <div id="message">1번 인식! 화면 한 번 터치해서 영상 재생해줘.</div>
+    <div id="message">AR 포토카드를 화면 가운데에 보이도록 비춰 주세요.</div>
 
     <script>
       const start = async () => {
@@ -74,10 +74,7 @@
 
         const material = new THREE.ShaderMaterial({
           uniforms: {
-            map: { value: texture },
-            keyColor: { value: new THREE.Color(0x0040ff) },
-            thresholdBlue: { value: 0.20 },
-            softnessBlue: { value: 0.05 }
+            map: { value: texture }
           },
           vertexShader: `
             varying vec2 vUv;
@@ -89,19 +86,21 @@
           fragmentShader: `
             precision mediump float;
             uniform sampler2D map;
-            uniform vec3 keyColor;
-            uniform float thresholdBlue;
-            uniform float softnessBlue;
             varying vec2 vUv;
 
             void main() {
               vec4 texColor = texture2D(map, vUv);
 
-              float distBlue = distance(texColor.rgb, keyColor);
+              float maxRG = max(texColor.r, texColor.g);
+              float blueStrength = texColor.b - maxRG;
 
-              float alphaBlue = smoothstep(thresholdBlue, thresholdBlue + softnessBlue, distBlue);
+              float key = smoothstep(0.05, 0.18, blueStrength);
 
-              gl_FragColor = vec4(texColor.rgb, alphaBlue);
+              float alpha = (1.0 - key) * texColor.a;
+
+              if (alpha < 0.01) discard;
+
+              gl_FragColor = vec4(texColor.rgb, alpha);
             }
           `,
           side: THREE.DoubleSide,
@@ -113,6 +112,7 @@
         const anchor = mindarThree.addAnchor(0);
         anchor.group.add(plane);
 
+        const messageEl = document.getElementById("message");
         let isPlaying = false;
 
         const playVideo = async () => {
@@ -123,8 +123,8 @@
         };
 
         anchor.onTargetFound = () => {
-          document.getElementById("message").innerText =
-            "1번 인식! 화면 한 번 터치해서 영상 재생해줘.";
+          messageEl.innerText =
+            "카드가 인식되었어요. 화면을 한 번 터치하시면 영상이 재생됩니다.";
         };
 
         anchor.onTargetLost = () => {
@@ -133,12 +133,16 @@
             video.currentTime = 0;
             isPlaying = false;
           }
+          messageEl.innerText =
+            "카드가 화면에서 벗어났어요. 다시 카드 전체가 보이도록 비춰 주세요.";
         };
 
         document.body.addEventListener(
           "click",
           () => {
-            if (!isPlaying) playVideo();
+            if (!isPlaying) {
+              playVideo();
+            }
           },
           { passive: true }
         );
